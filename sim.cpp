@@ -1,63 +1,61 @@
-#include <GL/gl.h>
-#include <cstdio>
 #include <cmath>
 #include <GLFW/glfw3.h>
 
 int main() {
-
     if (!glfwInit()) return 1;
     GLFWwindow* win = glfwCreateWindow(960, 540, "stick", nullptr, nullptr);
     if (!win) {
-        glfwTerminate(); 
+        glfwTerminate();
         return 1;
     }
-    glfwMakeContextCurrent(win); // erkana cizim yapar.
+    glfwMakeContextCurrent(win);
 
-
-    const double L = 0.5;
+    const double L = 2.5;
     const double g = 9.81;
     const double dt = 0.01;
-    double theta = 0.4; // rad, kucuk aci (0 = asagi)
-    double omega = 0.0; // saniyede kac radyan degisiyor
+    const double m = 1.0;
+    double theta = 0.8;
+    double omega = 0.0;
+    double tork = 0.0;
+
+    const float pivot_x = 0.f;
+    const float pivot_y = 0.f;
 
     while (!glfwWindowShouldClose(win)) {
-        //fizik
-        double theta_ddot = -(g/L) * std::sin(theta);
+        if (glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS) tork = -4.0;
+        if (glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS) tork = +4.0; // sol ve sag tuslari tork yonu ekler.:
+        if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) tork = 0.0;
+        double theta_ddot = -(g / L) * std::sin(theta) + tork / (m *L *L);
         omega += theta_ddot * dt;
         theta += omega * dt;
-        
 
-        //cizim
-        glClearColor(0, 0, 0, 1); // r, g, b, a . a burada opakligi gosterir.
-        glClear(GL_COLOR_BUFFER_BIT); // bu da rengi uygular.
+        float x = (float)(L * std::sin(theta));
+        float y = (float)(-L * std::cos(theta));
 
-        float x = (float)(L*std::sin(theta));
-        float y = (float)(-L*std::cos(theta)); // 0 asagi
-        
-        int h, w;
-        glfwGetFramebufferSize(win , &w, &h);
-        glViewport(0,0,w,h);  // ekran oranti duzeltmesi.
+        int w, h;
+        glfwGetFramebufferSize(win, &w, &h);
+        glViewport(0, 0, w, h);
 
-        float aspect = (h>0) ? (float)w / (float)h : 1.f;
+        float aspect = (h > 0) ? (float)w / (float)h : 1.f;
+
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         glLoadIdentity();
-        glOrtho(-5.0*aspect, 5.0*aspect, -5.0, 5.0, -1.0, 1.0); //2D dunya
+        glOrtho(-5.0 * aspect, 5.0 * aspect, -5.0, 5.0, -1.0, 1.0);
 
         glBegin(GL_LINES);
-        glColor3f(1, 1, 1);
-        glVertex2f(0.f, 3.f); //pivot
-        glVertex2f(x, y); //uc
+        glColor3f(1.f, 1.f, 1.f);
+        glVertex2f(pivot_x, pivot_y);
+        glVertex2f(pivot_x + x, pivot_y + y);
         glEnd();
-        
-        //daire
+
         glBegin(GL_LINE_LOOP);
-        glColor3f(0.3f,0.3f,0.3f);
+        glColor3f(0.3f, 0.3f, 0.3f);
         const int N = 64;
-        for (int i=0; i<N; i++) {
-            
+        for (int i = 0; i < N; ++i) {
             float a = (float)(2.0 * 3.14159265 * i / N);
-            float cx = x + (float)(L * std::cos(a));
-            float cy = y + (float)(L * std::sin(a));
-            glVertex2f(cx, cy);
+            glVertex2f(pivot_x + (float)(L * std::cos(a)), pivot_y + (float)(L * std::sin(a)));
         }
         glEnd();
 

@@ -7,7 +7,10 @@ int main() {
 
     if (!glfwInit()) return 1;
     GLFWwindow* win = glfwCreateWindow(960, 540, "stick", nullptr, nullptr);
-    if (!win) {glfwTerminate(); return 1;}
+    if (!win) {
+        glfwTerminate(); 
+        return 1;
+    }
     glfwMakeContextCurrent(win); // erkana cizim yapar.
 
 
@@ -16,8 +19,6 @@ int main() {
     const double dt = 0.01;
     double theta = 0.4; // rad, kucuk aci (0 = asagi)
     double omega = 0.0; // saniyede kac radyan degisiyor
-    double t = 0.0;
-
 
     while (!glfwWindowShouldClose(win)) {
         //fizik
@@ -35,7 +36,7 @@ int main() {
         
         int h, w;
         glfwGetFramebufferSize(win , &w, &h);
-        glViewport(0,0,w,h);
+        glViewport(0,0,w,h);  // ekran oranti duzeltmesi.
 
         float aspect = (h>0) ? (float)w / (float)h : 1.f;
         glLoadIdentity();

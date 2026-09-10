@@ -20,26 +20,43 @@ int main(int argc, char** argv) {
     const double g = 9.81;
     const double dt = 0.01;
     const double m = 1.0;
+    const double m_cart = 0.05;
     double theta = 0.8;
     double omega = 0.0;
     double tork = 0.0;
+    double F = 0.0;
+    double V = 0.0;
+    double X = 0.0;
 
-    const float pivot_x = 0.f;
-    const float pivot_y = 0.f;
+    
+    float pivot_x = (float)X;
+    float pivot_y = 0.0f;
 
     while (!glfwWindowShouldClose(win)) {
         if (glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS) tork -= 4.0 * dt;
         if (glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS) tork += 4.0 * dt; // sol ve sag tuslari tork yonu ekler.:
         if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) {
-            tork = 0.0;
-            omega = 0.0; // not working.
+            tork = 0.0; // amgular
+            omega = 0.0; // angular speed 
         }
+        if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
+            F = -4.0;
+        } else if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
+            F = +4.0;
+        } else { 
+            F = 0.0;
+        }
+
+        double a = F / m_cart;
         double theta_ddot = -(g / L) * std::sin(theta) + tork / (m *L *L);
         omega += theta_ddot * dt;
         theta += omega * dt;
-
+        V += a * dt;
+        X += V * dt;
         float x = (float)(L * std::sin(theta));
         float y = (float)(-L * std::cos(theta));
+        float pivot_x = (float)X;
+        float pivot_y = 0.0f;
 
         int w, h;
         glfwGetFramebufferSize(win, &w, &h);
@@ -55,14 +72,22 @@ int main(int argc, char** argv) {
 
         //texts
         char tork_metni[32];
+        char speed_metni[32];
         snprintf(tork_metni, sizeof(tork_metni), "Tork: %.2f Nm", tork);
+        snprintf(speed_metni, sizeof(speed_metni), "Speed: %.2f m/s", V);
 
         glColor3f(1.f, 1.f, 1.f);
-        glRasterPos2f(-4.5f * aspect, 4.2f);
 
+        glRasterPos2f(-4.5f * aspect, 4.2f);
         for (int i = 0; tork_metni[i] != '\0'; i++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, tork_metni[i]);
         }
+
+        glRasterPos2f(-4.5f * aspect, 3.7f);
+        for (int i = 0; speed_metni[i] != '\0'; i++) {
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, speed_metni[i]);
+        }
+        
 
         //line
         glBegin(GL_LINES);
@@ -76,8 +101,8 @@ int main(int argc, char** argv) {
         glColor3f(0.3f, 0.3f, 0.3f);
         const int N = 64;
         for (int i = 0; i < N; ++i) {
-            float a = (float)(2.0 * 3.14159265 * i / N);
-            glVertex2f(pivot_x + (float)(L * std::cos(a)), pivot_y + (float)(L * std::sin(a)));
+            float u = (float)(2.0 * 3.14159265 * i / N);
+            glVertex2f(pivot_x + (float)(L * std::cos(u)), pivot_y + (float)(L * std::sin(u)));
         }
         glEnd();
 

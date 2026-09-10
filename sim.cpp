@@ -1,8 +1,14 @@
 #include <cmath>
 #include <GLFW/glfw3.h>
+#include <GL/glut.h>
+#include <cstdio>
 
-int main() {
+int main(int argc, char** argv) {
+
     if (!glfwInit()) return 1;
+
+    glutInit(&argc, argv);
+
     GLFWwindow* win = glfwCreateWindow(960, 540, "stick", nullptr, nullptr);
     if (!win) {
         glfwTerminate();
@@ -22,9 +28,12 @@ int main() {
     const float pivot_y = 0.f;
 
     while (!glfwWindowShouldClose(win)) {
-        if (glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS) tork = -4.0;
-        if (glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS) tork = +4.0; // sol ve sag tuslari tork yonu ekler.:
-        if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) tork = 0.0;
+        if (glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS) tork -= 4.0 * dt;
+        if (glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS) tork += 4.0 * dt; // sol ve sag tuslari tork yonu ekler.:
+        if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            tork = 0.0;
+            omega = 0.0; // not working.
+        }
         double theta_ddot = -(g / L) * std::sin(theta) + tork / (m *L *L);
         omega += theta_ddot * dt;
         theta += omega * dt;
@@ -44,12 +53,25 @@ int main() {
         glLoadIdentity();
         glOrtho(-5.0 * aspect, 5.0 * aspect, -5.0, 5.0, -1.0, 1.0);
 
+        //texts
+        char tork_metni[32];
+        snprintf(tork_metni, sizeof(tork_metni), "Tork: %.2f Nm", tork);
+
+        glColor3f(1.f, 1.f, 1.f);
+        glRasterPos2f(-4.5f * aspect, 4.2f);
+
+        for (int i = 0; tork_metni[i] != '\0'; i++) {
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, tork_metni[i]);
+        }
+
+        //line
         glBegin(GL_LINES);
         glColor3f(1.f, 1.f, 1.f);
         glVertex2f(pivot_x, pivot_y);
         glVertex2f(pivot_x + x, pivot_y + y);
         glEnd();
 
+        //circle
         glBegin(GL_LINE_LOOP);
         glColor3f(0.3f, 0.3f, 0.3f);
         const int N = 64;

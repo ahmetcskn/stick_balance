@@ -40,15 +40,18 @@ int main(int argc, char** argv) {
             omega = 0.0; // angular speed 
         }
         if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
-            F = -4.0;
+            F = -1.0;
         } else if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
-            F = +4.0;
+            F = +1.0;
         } else { 
             F = 0.0;
         }
 
+        if (X > 6.0) {X = 6.0; V = ((-V) + (V/4));}
+        if (X < -6.0) {X = -6.0; V = ((-V) + (V/4));}
+
         double a = F / m_cart;
-        double theta_ddot = -(g / L) * std::sin(theta) + tork / (m *L *L);
+        double theta_ddot = -(g / L) * std::sin(theta) + tork / (m *L *L) - (a/L) * std::cos(theta);
         omega += theta_ddot * dt;
         theta += omega * dt;
         V += a * dt;

@@ -19,8 +19,8 @@ int main(int argc, char** argv) {
     const double L = 2.5;
     const double g = 9.81;
     const double dt = 0.01;
-    const double m = 1.0;
-    const double m_cart = 0.05;
+    const double m = 0.6;
+    const double m_cart = 2;
     double theta = 0.8;
     double omega = 0.0;
     double tork = 0.0;
@@ -33,16 +33,19 @@ int main(int argc, char** argv) {
     float pivot_y = 0.0f;
 
     while (!glfwWindowShouldClose(win)) {
-        if (glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS) tork -= 4.0 * dt;
-        if (glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS) tork += 4.0 * dt; // sol ve sag tuslari tork yonu ekler.:
-        if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        if (glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            tork -= 4.0 * dt;
+        } else if (glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+             tork += 4.0 * dt; // sol ve sag tuslari tork yonu ekler.:
+        } else  if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) {
             tork = 0.0; // amgular
             omega = 0.0; // angular speed 
         }
+
         if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
-            F = -1.0;
+            F = -7.0;
         } else if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
-            F = +1.0;
+            F = +7.0;
         } else { 
             F = 0.0;
         }
@@ -50,11 +53,20 @@ int main(int argc, char** argv) {
         if (X > 6.0) {X = 6.0; V = ((-V) + (V/4));}
         if (X < -6.0) {X = -6.0; V = ((-V) + (V/4));}
 
-        double a = F / m_cart;
-        double theta_ddot = -(g / L) * std::sin(theta) + tork / (m *L *L) - (a/L) * std::cos(theta);
+// iki bilinmeyenli birbirine bagli iki denklemin 2x2 matris cozumu.j
+        double A11 = L;
+        double A12 = std::cos(theta);
+        double A21 = m * L * std::cos(theta);
+        double A22 = m_cart + m;
+        double b1 = -g * std::sin(theta) + tork / (m*L);
+        double b2 = F + m * L * std::sin(theta) * omega * omega;
+        double det = A11 * A22 - A12 * A21;
+        double theta_ddot = (b1 * A22 - b2 * A12) / det;
+        double x_ddot = ( A11 * b2 - b1* A21) / det;
+
         omega += theta_ddot * dt;
         theta += omega * dt;
-        V += a * dt;
+        V += x_ddot * dt;
         X += V * dt;
         float x = (float)(L * std::sin(theta));
         float y = (float)(-L * std::cos(theta));
@@ -105,7 +117,8 @@ int main(int argc, char** argv) {
         const int N = 64;
         for (int i = 0; i < N; ++i) {
             float u = (float)(2.0 * 3.14159265 * i / N);
-            glVertex2f(pivot_x + (float)(L * std::cos(u)), pivot_y + (float)(L * std::sin(u)));
+            glVertex2f(pivot_x + (float)(L * std::cos(u)), 
+                    pivot_y + (float)(L * std::sin(u)));
         }
         glEnd();
 
